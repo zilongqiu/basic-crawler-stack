@@ -1,0 +1,15 @@
+<?php
+
+$finder = PhpCsFixer\Finder::create()
+    ->files()
+    ->in(['src'])
+    ->name('*.php')
+;
+
+$rules = require __DIR__.'/etc/php-cs-fixer/rules.php';
+
+return PhpCsFixer\Config::create()
+    ->setRules($rules)
+    ->setRiskyAllowed(true)
+    ->setFinder($finder)
+;

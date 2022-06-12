@@ -1,0 +1,5 @@
+.idea/
+.composer/
+.DS_Store
+.symfony/*
+.bash_history

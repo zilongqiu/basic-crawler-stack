@@ -1,0 +1,49 @@
+version: '3'
+services:
+  webapp:
+    build: .
+    container_name: webapp
+    volumes:
+      - .:/var/www
+    working_dir: /var/www/
+    links:
+      - nginx
+      - mysql
+    tty: true
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    ports:
+      - 3306:3306
+    command: mysqld --innodb_lock_wait_timeout=1 --max_allowed_packet=16M
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: IO4ZdmVPPlzMMiaI
+      MYSQL_DATABASE: app
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: zHWAx9XTXljm3nVB
+
+  phpfpm:
+    build: docker/phpfpm
+    container_name: phpfpm
+    ports:
+      - 9000:9000
+    volumes:
+      - .:/var/www
+    environment:
+      - XDEBUG_CONFIG=remote_host=172.17.0.1
+      - PHP_IDE_CONFIG=serverName=localhost
+      - ./docker/phpfpm/log/error.log:/var/log/error.log
+    env_file: vars.env
+
+  nginx:
+    build: docker/nginx
+    container_name: nginx
+    ports:
+      - 80:80
+    volumes:
+      - .:/var/www
+      - ./docker/nginx/log:/var/log/nginx
+    links:
+      - phpfpm

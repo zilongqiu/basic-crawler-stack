@@ -1,0 +1,82 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+    <script type="text/javascript">
+        version = 1;
+        const queryString = window.location.search;
+        const urlParams = new URLSearchParams(queryString);
+        if (urlParams.has('v')) {
+            version = urlParams.get('v');
+            console.log(version);
+        }
+
+        google.charts.load("current", {packages:["corechart", "table"]});
+
+        google.charts.setOnLoadCallback(drawChart);
+        function drawChart() {
+            var jsonData = JSON.parse($.ajax({
+                url: "https://www.crispyhunt.com/ai/stats/photo-label/"+version,
+                dataType: "json",
+                async: false
+            }).responseText);
+
+            dataArray = [['Label', 'Photo number']];
+            for (var stats of jsonData)
+            {
+                dataArray.push([stats['label'], parseInt(stats['total'])]);
+            }
+
+            var data = google.visualization.arrayToDataTable(dataArray);
+            var options = {
+                title: 'Photo labels repartition v'+version,
+                pieHole: 0.4,
+            };
+
+            var chart = new google.visualization.PieChart(document.getElementById('donutchart'));
+            chart.draw(data, options);
+        }
+
+        google.charts.setOnLoadCallback(drawTable);
+        function drawTable() {
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Label');
+            data.addColumn('number', 'Photo number');
+            data.addColumn('number', 'Accuracy average');
+
+            var jsonData = JSON.parse($.ajax({
+                url: "https://www.crispyhunt.com/ai/stats/photo-label/"+version,
+                dataType: "json",
+                async: false
+            }).responseText);
+
+            for (var stats of jsonData) {
+                data.addRows([
+                    [stats['label'],  {v: parseInt(stats['total']), f: stats['total']}, {v: parseInt(stats['accuracy_avg']), f: parseFloat(stats['accuracy_avg']).toFixed(2)+'%'}],
+                ]);
+            }
+
+            var table = new google.visualization.Table(document.getElementById('table_div'));
+
+            var formatter = new google.visualization.ColorFormat();
+            formatter.addRange(0, 30, 'white', 'red');
+            formatter.addRange(30, 50, 'white', 'orange');
+            formatter.format(data, 2);
+
+            var options = {
+                allowHtml: true,
+                //sortColumn: {column: 1, desc: true},
+                sortColumn: {column: 2},
+                showRowNumber: true,
+                width: '100%',
+            };
+
+            table.draw(data, options);
+        }
+    </script>
+</head>
+<body>
+<div id="donutchart" style="width: 900px; height: 500px; display: block; margin: 0 auto;"></div>
+<div id="table_div" style="width: 900px; height: 500px;  display: block; margin: 0 auto;"></div>
+</body>
+</html>
